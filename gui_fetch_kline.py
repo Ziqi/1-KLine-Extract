@@ -52,34 +52,18 @@ class DashFrame(tk.Frame):
         self.canvas.create_rectangle(15, 0, 15 + len(self.title_text)*10, 20, fill=self.bg_color, outline="")
         self.canvas.create_text(20, 10, text=self.title_text, anchor="w", font=self.font, fill=self.fg_color)
 
-def bind_auto_scrollbar(container, scrollbar, side, fill):
-    """
-    让滚动条在鼠标悬停于 container 时出现，离开时隐藏。
-    container 必须是一个包含了主体 widget 和 scrollbar 的 Frame。
-    """
-    def check_mouse_leave(e):
-        x, y = container.winfo_pointerxy()
-        cx, cy = container.winfo_rootx(), container.winfo_rooty()
-        cw, ch = container.winfo_width(), container.winfo_height()
-        if not (cx <= x <= cx + cw and cy <= y <= cy + ch):
-            scrollbar.pack_forget()
 
-    def on_enter(e):
-        scrollbar.pack(side=side, fill=fill, before=container.winfo_children()[0] if side in [tk.BOTTOM, tk.TOP] else None)
-        
-    def on_leave(e):
-        # 增加延迟防抖
-        container.after(100, check_mouse_leave, e)
-        
-    container.bind("<Enter>", on_enter)
-    container.bind("<Leave>", on_leave)
-    
 class KlineDataFetcherGUI(ttk.Window):
     def __init__(self):
         super().__init__(themename="cyborg")
         self.title("全市场一分钟K线历史数据抓取控制台")
         self.geometry("1100x860")
         self.minsize(1050, 800)
+        
+        try:
+            self.createcommand('::tk::mac::ReopenApplication', self.deiconify)
+        except Exception:
+            pass
         
         # 极简黑金主题色 (Flat Dark Gold)
         self.c_bg = "#080808"        # 终极深邃黑
@@ -185,8 +169,8 @@ class KlineDataFetcherGUI(ttk.Window):
         pl_scroll = ttk.Scrollbar(pool_frame, orient=tk.VERTICAL, command=self.pool_listbox.yview, style="Hidden.Vertical.TScrollbar")
         self.pool_listbox.configure(yscrollcommand=pl_scroll.set)
         
+        pl_scroll.pack(side=RIGHT, fill=tk.Y)
         self.pool_listbox.pack(side=LEFT, fill=X, expand=True, padx=2, pady=2)
-        bind_auto_scrollbar(pool_frame, pl_scroll, tk.RIGHT, tk.Y)
         
         self.pool_listbox.bind('<Delete>', self.on_remove_from_pool)
         self.pool_listbox.bind('<BackSpace>', self.on_remove_from_pool)
@@ -308,8 +292,8 @@ class KlineDataFetcherGUI(ttk.Window):
         tree_yscroll = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.tree.yview, style="Hidden.Vertical.TScrollbar")
         self.tree.configure(yscrollcommand=tree_yscroll.set)
         
+        tree_yscroll.pack(side=RIGHT, fill=tk.Y)
         self.tree.pack(side=LEFT, fill=BOTH, expand=True)
-        bind_auto_scrollbar(tree_container, tree_yscroll, tk.RIGHT, tk.Y)
         
         # Bindings for tree
         self.tree.bind('<ButtonRelease-1>', self.on_tree_click)
@@ -341,8 +325,8 @@ class KlineDataFetcherGUI(ttk.Window):
         txt_scroll = ttk.Scrollbar(txt_frame, orient=tk.VERTICAL, command=self.log_widget.yview, style="Hidden.Vertical.TScrollbar")
         self.log_widget.configure(yscrollcommand=txt_scroll.set)
         
+        txt_scroll.pack(side=RIGHT, fill=tk.Y)
         self.log_widget.pack(side=LEFT, fill=BOTH, expand=True)
-        bind_auto_scrollbar(txt_frame, txt_scroll, tk.RIGHT, tk.Y)
         
         # 定义日志高亮 Tag (Markdown style)
         self.log_widget.tag_config("info", foreground=self.c_fg)
