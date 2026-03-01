@@ -15,7 +15,7 @@ from ttkbootstrap.constants import *
 from pathlib import Path
 
 # === API Config ===
-MIANA_TOKEN = "39714975dfb24ce8ae966aaf02c422fa"
+MIANA_TOKEN = os.getenv("MIANA_TOKEN", "YOUR_API_TOKEN_HERE")  # 为了安全，请替换为您自己的 Token 或使用环境变量
 MIANA_LIST_URL = "https://miana.com.cn/api/stock/v1/stockList"
 MIANA_KLINE_URL = "https://miana.com.cn/api/stock/v2/kline"
 
