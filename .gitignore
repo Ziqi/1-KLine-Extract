@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.env
+
+# MacOS & System
+.DS_Store
+.AppleDouble
+.LSOverride
+*.app/
+Icon
+
+# App runtime & Data
+gui_downloads/
+/tmp/
+*.log
+*.csv
+
+# IDE
+.idea/
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
