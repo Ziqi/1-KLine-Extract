@@ -55,13 +55,16 @@ class DashFrame(tk.Frame):
 
 class KlineDataFetcherGUI(ttk.Window):
     def __init__(self):
-        super().__init__(themename="cyborg")
+        super().__init__()  # Removed themename="cyborg" to fix macOS OpenGL minimize freeze
+        self.style = ttk.Style(theme="cyborg")
         self.title("全市场一分钟K线历史数据抓取控制台")
         self.geometry("1100x860")
         self.minsize(1050, 800)
         
+        # 修复 macOS 最小化彻底卡死崩溃的问题
         try:
             self.createcommand('::tk::mac::ReopenApplication', self.deiconify)
+            self.protocol("WM_DELETE_WINDOW", self.on_closing)
         except Exception:
             pass
         
@@ -924,9 +927,29 @@ class KlineDataFetcherGUI(ttk.Window):
         filename = f"{stock_name}_{symbol}_1m_{act_start}_to_{act_end}.csv"
         df.to_csv(self.out_dir / filename, index=False)
         
+        # --- DATA INTEGRITY CHECK (数据连续性安全复核) ---
+        self.after(0, lambda: self.log_msg(f"[*] 启动本地质量复核：正在扫描时间序列连续性断层..."))
+        try:
+            df['dt_obj'] = pd.to_datetime(df['dt'])
+            # 找出所有的日期间隔
+            date_diffs = df['dt_obj'].diff()
+            # 如果中间有超过 10 天的断层（比如停牌、退市再上市，或者 Miana 接口漏数据）
+            gaps = df[date_diffs > pd.Timedelta(days=10)]
+            if not gaps.empty:
+                max_gap = date_diffs.max().days
+                self.after(0, lambda mg=max_gap: self.log_msg(f"[!] 连续性警告：复核发现该序列内存在长达 {mg} 天的断层！请检查是否为长期停牌。如果异常，建议之后扔进 Slicer 前单独筛选。", "warn"))
+            else:
+                self.after(0, lambda: self.log_msg(f"[+] 复核通过：未发现长期断层数据丢失，序列连续性良好。", "succ"))
+        except Exception as e:
+             self.after(0, lambda err=e: self.log_msg(f"[-] 连续性扫描异常: {str(err)}", "warn"))
+        
         self.after(0, lambda: self.set_progress(100))
-        self.after(0, lambda: self.log_msg(f"[+] 单标的资产已封装落盘完毕 ({stock_name}, 尺寸: {len(df)} 行)"))
+        self.after(0, lambda: self.log_msg(f"[+] 单标的资产已封装落盘完毕 ({stock_name}, 尺寸: {len(df)} 行)", "sys"))
         return True
+
+    def on_closing(self):
+        self.stop_requested = True
+        self.destroy()
 
     def __fetch_done(self, msg, style):
         self.start_btn.config(state=NORMAL)
