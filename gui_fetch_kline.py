@@ -56,7 +56,7 @@ class DashFrame(tk.Frame):
 class KlineDataFetcherGUI(ttk.Window):
     def __init__(self):
         super().__init__()  # Removed themename="cyborg" to fix macOS OpenGL minimize freeze
-        self.style = ttk.Style(theme="cyborg")
+        self.style.theme_use("cyborg")
         self.title("全市场一分钟K线历史数据抓取控制台")
         self.geometry("1100x860")
         self.minsize(1050, 800)
